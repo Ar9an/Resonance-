@@ -8,32 +8,39 @@
 </head>
 <body>
 
-  <div class="wrapper">
-    <div class="header">
-      <h1>LP Personalizer</h1>
-      <p>Paste your ad + landing page → get a personalized version instantly</p>
+  <div class="container">
+    <h1>✨ LP Personalizer</h1>
+    <p class="subtitle">Turn ads into high-converting landing pages instantly</p>
+
+    <div class="input-section">
+      <textarea id="ad-input" placeholder="Paste your Ad Creative..."></textarea>
+      <textarea id="lp-input" placeholder="Paste your Landing Page Copy..."></textarea>
+      <button id="run-btn">🚀 Generate Personalized Page</button>
     </div>
 
-    <div class="card">
-      <label>Ad Creative</label>
-      <textarea id="ad-input" rows="4"></textarea>
-    </div>
-
-    <div class="card">
-      <label>Landing Page Copy</label>
-      <textarea id="lp-input" rows="5"></textarea>
-    </div>
-
-    <!-- ✅ NO onclick -->
-    <button id="run-btn">Personalize →</button>
-
-    <div id="status" class="hidden">Loading...</div>
-    <div id="error" class="hidden"></div>
+    <div id="status" class="status hidden">Generating magic...</div>
+    <div id="error" class="error hidden"></div>
 
     <div id="output" class="hidden">
-      <div id="analysis"></div>
-      <div id="before-frame"></div>
-      <div id="after-frame"></div>
+
+      <div class="analysis-card">
+        <h3>🔍 AI Analysis</h3>
+        <p id="analysis"></p>
+        <div id="insights" class="chips"></div>
+      </div>
+
+      <div class="compare">
+        <div class="card">
+          <h3>Before</h3>
+          <div id="before-frame"></div>
+        </div>
+
+        <div class="card highlight">
+          <h3>After ✨</h3>
+          <div id="after-frame"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 

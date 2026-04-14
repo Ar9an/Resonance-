@@ -1,78 +1,51 @@
-const PROMPT_TEMPLATE = `Return ONLY valid JSON.
-
-{
-  "adAnalysis": "",
-  "insights": [],
-  "before": {},
-  "after": {}
-}`;
-
 document.getElementById("run-btn").addEventListener("click", personalize);
 
 async function personalize() {
-  console.log("BUTTON CLICKED");
+  const ad = document.getElementById("ad-input").value.trim();
+  const lp = document.getElementById("lp-input").value.trim();
 
-  const adInput = document.getElementById("ad-input").value.trim();
-  const lpInput = document.getElementById("lp-input").value.trim();
-
-  if (!adInput) return showError("Enter ad");
-  if (!lpInput) return showError("Enter landing page");
+  if (!ad || !lp) return showError("Fill both fields");
 
   clearError();
   setLoading(true);
 
-  const fullPrompt = `${PROMPT_TEMPLATE}
-
-Ad: ${adInput}
-LP: ${lpInput}`;
-
   try {
-    const response = await fetch("/api/generate", {
+    const res = await fetch("/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ prompt: fullPrompt })
+      body: JSON.stringify({
+        prompt: `Ad: ${ad}\nLP: ${lp}\nReturn JSON only`
+      })
     });
 
-    const data = await response.json();
+    const data = await res.json();
+    let raw = data.output;
 
-    if (data.error) throw new Error(data.error);
+    let parsed = JSON.parse(raw);
 
-    let raw = data.choices?.[0]?.message?.content || "";
-
-    let clean = raw.replace(/```json|```/g, "").trim();
-
-    const start = clean.indexOf("{");
-    const end = clean.lastIndexOf("}");
-
-    if (start !== -1 && end !== -1) {
-      clean = clean.substring(start, end + 1);
-    }
-
-    let parsed;
-
-    try {
-      parsed = JSON.parse(clean);
-    } catch {
-      clean = clean.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
-      parsed = JSON.parse(clean);
-    }
-
-    renderOutput(parsed);
+    render(parsed);
     setLoading(false);
 
-  } catch (err) {
+  } catch (e) {
+    showError("Something went wrong");
     setLoading(false);
-    showError(err.message);
   }
 }
 
-// UI functions
-function renderOutput(data) {
-  document.getElementById("analysis").textContent = data.adAnalysis || "Done!";
-  document.getElementById("before-frame").textContent = JSON.stringify(data.before);
-  document.getElementById("after-frame").textContent = JSON.stringify(data.after);
+function render(data) {
+  document.getElementById("analysis").innerText = data.adAnalysis;
+
+  document.getElementById("insights").innerHTML =
+    data.insights.map(i => `<span>${i.label}: ${i.value}</span>`).join("");
+
+  document.getElementById("before-frame").innerText =
+    JSON.stringify(data.before, null, 2);
+
+  document.getElementById("after-frame").innerText =
+    JSON.stringify(data.after, null, 2);
+
   document.getElementById("output").classList.remove("hidden");
 }
 
@@ -82,7 +55,7 @@ function setLoading(show) {
 
 function showError(msg) {
   const el = document.getElementById("error");
-  el.textContent = msg;
+  el.innerText = msg;
   el.classList.remove("hidden");
 }
 
