@@ -1,25 +1,32 @@
+const PROMPT_TEMPLATE = `Return ONLY valid JSON.
+
+{
+  "adAnalysis": "",
+  "insights": [],
+  "before": {},
+  "after": {}
+}`;
+
+document.getElementById("run-btn").addEventListener("click", personalize);
+
 async function personalize() {
+  console.log("BUTTON CLICKED");
+
   const adInput = document.getElementById("ad-input").value.trim();
   const lpInput = document.getElementById("lp-input").value.trim();
 
-  if (!adInput) return showError("Please describe your ad creative.");
-  if (!lpInput) return showError("Please paste your landing page copy.");
+  if (!adInput) return showError("Enter ad");
+  if (!lpInput) return showError("Enter landing page");
 
   clearError();
-  setLoading(true, "Analyzing your ad...");
-  document.getElementById("output").classList.add("hidden");
+  setLoading(true);
 
   const fullPrompt = `${PROMPT_TEMPLATE}
 
-Ad creative:
-${adInput}
-
-Current landing page copy:
-${lpInput}`;
+Ad: ${adInput}
+LP: ${lpInput}`;
 
   try {
-    setLoading(true, "Personalizing your landing page...");
-
     const response = await fetch("/api/generate", {
       method: "POST",
       headers: {
@@ -28,38 +35,13 @@ ${lpInput}`;
       body: JSON.stringify({ prompt: fullPrompt })
     });
 
-    // 🔥 safer handling
-    if (!response.ok) {
-      throw new Error("Backend error");
-    }
-
-    const text = await response.text();
-
-    if (!text) {
-      throw new Error("Empty response from backend");
-    }
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      console.error("Invalid backend JSON:", text);
-      throw new Error("Server returned invalid data");
-    }
+    const data = await response.json();
 
     if (data.error) throw new Error(data.error);
 
-    const rawText =
-      data.choices?.[0]?.message?.content ||
-      data.output ||
-      "";
+    let raw = data.choices?.[0]?.message?.content || "";
 
-    if (!rawText) throw new Error("Empty AI response");
-
-    // ✅ CLEAN RESPONSE
-    let clean = rawText
-      .replace(/```json|```/g, "")
-      .trim();
+    let clean = raw.replace(/```json|```/g, "").trim();
 
     const start = clean.indexOf("{");
     const end = clean.lastIndexOf("}");
@@ -72,22 +54,9 @@ ${lpInput}`;
 
     try {
       parsed = JSON.parse(clean);
-    } catch (e) {
-      console.warn("First parse failed, trying fix...");
-
-      // 🔥 FIX COMMON JSON ISSUES
-      try {
-        const fixed = clean
-          .replace(/,\s*}/g, "}")   // remove trailing commas
-          .replace(/,\s*]/g, "]")
-          .replace(/\n/g, " ")
-          .replace(/\t/g, " ");
-
-        parsed = JSON.parse(fixed);
-      } catch (e2) {
-        console.error("RAW AI RESPONSE:", rawText);
-        throw new Error("AI returned invalid JSON. Try again.");
-      }
+    } catch {
+      clean = clean.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
+      parsed = JSON.parse(clean);
     }
 
     renderOutput(parsed);
@@ -97,4 +66,26 @@ ${lpInput}`;
     setLoading(false);
     showError(err.message);
   }
+}
+
+// UI functions
+function renderOutput(data) {
+  document.getElementById("analysis").textContent = data.adAnalysis || "Done!";
+  document.getElementById("before-frame").textContent = JSON.stringify(data.before);
+  document.getElementById("after-frame").textContent = JSON.stringify(data.after);
+  document.getElementById("output").classList.remove("hidden");
+}
+
+function setLoading(show) {
+  document.getElementById("status").classList.toggle("hidden", !show);
+}
+
+function showError(msg) {
+  const el = document.getElementById("error");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
+
+function clearError() {
+  document.getElementById("error").classList.add("hidden");
 }
