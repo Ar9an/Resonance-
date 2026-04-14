@@ -1,7 +1,7 @@
 // =============================================
 //  CONFIG — paste your OpenRouter API key here
 // =============================================
-const OPENROUTER_API_KEY = "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";
+const OPENROUTER_API_KEY = "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";
 // Get your free key at: https://openrouter.ai
 // =============================================
 
@@ -80,7 +80,7 @@ Return only the JSON object, nothing else.`;
         "X-Title": "LP Personalizer"
       },
       body: JSON.stringify({
-        model: "google/gemma-3-12b-it:free",
+        model: "gpt-4o",
         messages: [{ role: "user", content: fullPrompt }],
         temperature: 0.7,
         max_tokens: 1000
