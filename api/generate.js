@@ -1,6 +1,11 @@
 export default async function handler(req, res) {
   try {
-    const { ad, url } = req.body;
+    // ✅ get prompt from frontend
+    const { prompt } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({ error: "No prompt provided" });
+    }
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -8,27 +13,15 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://your-site.vercel.app",
-        "X-Title": "Ad Generator Project"
+        "X-Title": "LP Personalizer"
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o",
+        model: "openai/gpt-4o-mini",   // ✅ stable model
+        temperature: 0.3,              // ✅ less randomness
         messages: [
           {
             role: "user",
-            content: `Create a high-converting personalized landing page.
-
-Ad Creative:
-${ad}
-
-Landing Page URL:
-${url}
-
-Generate:
-- Headline
-- Subheadline
-- CTA
-- Key sections
-- Persuasive copy`
+            content: prompt
           }
         ]
       })
@@ -36,11 +29,33 @@ Generate:
 
     const data = await response.json();
 
-    res.status(200).json({
-      output: data.choices?.[0]?.message?.content || "No response"
+    // ✅ handle API errors
+    if (data.error) {
+      return res.status(500).json({
+        error: data.error.message || "OpenRouter error"
+      });
+    }
+
+    // ✅ always return clean structure
+    const output = data.choices?.[0]?.message?.content || "";
+
+    if (!output) {
+      return res.status(500).json({ error: "Empty AI response" });
+    }
+
+    return res.status(200).json({
+      choices: [
+        {
+          message: {
+            content: output
+          }
+        }
+      ]
     });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({
+      error: error.message || "Server error"
+    });
   }
 }
