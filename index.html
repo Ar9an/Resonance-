@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LP Personalizer – Troopod</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="wrapper">
+    <div class="header">
+      <h1>LP Personalizer</h1>
+      <p>Paste your ad + landing page → get a personalized version instantly</p>
+    </div>
+
+    <!-- INPUTS -->
+    <div class="card">
+      <label>Ad Creative</label>
+      <p class="hint">Describe your ad — headline, offer, CTA, audience, tone</p>
+      <textarea id="ad-input" rows="4" placeholder="E.g. Bold headline: 'Tired of missing deadlines?' — Offer: 30-day free trial, no credit card. CTA: Start free. Target: project managers at startups."></textarea>
+    </div>
+
+    <div class="card">
+      <label>Current Landing Page Copy</label>
+      <p class="hint">Paste your existing headline, subheadline, CTA, and key bullet points</p>
+      <textarea id="lp-input" rows="5" placeholder="Headline: The all-in-one project tool&#10;Sub: Get your team organized&#10;CTA: Get started&#10;Features:&#10;- Real-time collaboration&#10;- 50+ integrations&#10;- Mobile app"></textarea>
+    </div>
+
+    <button id="run-btn" onclick="personalize()">Personalize my landing page →</button>
+
+    <div id="status" class="status hidden">
+      <div class="spinner"></div>
+      <span id="status-text">Analyzing ad creative...</span>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+
+    <!-- OUTPUT -->
+    <div id="output" class="hidden">
+
+      <div class="card insight-card">
+        <label>What Claude extracted from your ad</label>
+        <div id="insights" class="insights"></div>
+        <p id="analysis" class="analysis-text"></p>
+      </div>
+
+      <div class="compare">
+
+        <div class="compare-col">
+          <div class="compare-label before-label">Before</div>
+          <div class="lp-frame" id="before-frame"></div>
+        </div>
+
+        <div class="compare-col">
+          <div class="compare-label after-label">After — personalized ✦</div>
+          <div class="lp-frame" id="after-frame"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
